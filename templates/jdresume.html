@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}JD-Resume Comparison - HR Assist{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h2>Job Description &amp; Resume Comparison</h2>
+    <p>Upload a job description and a candidate's resume to get a match score along with a plain-language summary of the similarities and differences.</p>
+    <p id="rednotes"><b>Note:</b> Accepted formats are PDF, DOCX and TXT. Very long documents may exceed the model's token limit.</p>
+  </div>
+  <form action="/jdresume" method="post" id="jdresumeform" enctype="multipart/form-data">
+    <div class="form-grid">
+      <div>
+        <h4>Job Description</h4>
+        <label class="file-drop" for="jd_file">
+          <input type="file" id="jd_file" name="jd_file" accept=".pdf,.docx,.txt" onchange="updateFileName(this,'jd_file_name')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span class="file-drop-text">Click to upload or drag &amp; drop</span>
+          <span class="file-drop-name" id="jd_file_name"></span>
+        </label>
+      </div>
+      <div>
+        <h4>Resume</h4>
+        <label class="file-drop" for="resume_file">
+          <input type="file" id="resume_file" name="resume_file" accept=".pdf,.docx,.txt" onchange="updateFileName(this,'resume_file_name')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span class="file-drop-text">Click to upload or drag &amp; drop</span>
+          <span class="file-drop-name" id="resume_file_name"></span>
+        </label>
+      </div>
+      <div class="form-actions">
+        <input type="submit" value="Generate Matching Score and Summary" onclick="showLoading()">
+        <div id="notes"><b>Note:</b> Uploading both files is mandatory.</div>
+      </div>
+    </div>
+  </form>
+  {% if result %}<div class="result-card">{{ result | safe }}</div>{% endif %}
+  {% if jdresumebrief %}<div class="result-card">{{ jdresumebrief | safe }}</div>{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+  function updateFileName(input, targetId) {
+    var el = document.getElementById(targetId);
+    el.textContent = input.files.length ? input.files[0].name : "";
+  }
+</script>
+{% endblock %}

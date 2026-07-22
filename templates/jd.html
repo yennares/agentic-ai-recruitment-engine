@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}JD Creation - HR Assist{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h2>Job Description Generation</h2>
+    <p>Generate a customized job description tailored to the role, tone, skills and qualifications you need.</p>
+  </div>
+  <form action="/jd" method="post" id="jdform">
+    <div class="form-grid">
+      <div><h4>Job Position</h4><input type="text" name="jobposition" placeholder="Enter the Job Position"></div>
+      <div><h4>Choose a Tone</h4><select id="tone" name="tone">
+        <option value="professional">Professional</option>
+        <option value="formal">Formal</option>
+        <option value="friendly">Friendly</option>
+        <option value="casual">Casual</option>
+        <option value="youthful">Youthful</option>
+        <option value="clever">Clever</option>
+        <option value="persuasive">Persuasive</option>
+      </select></div>
+      <div><h4>Skills</h4><textarea id="skills" name="skills" rows="4" placeholder="Enter skills"></textarea></div>
+      <div><h4>Qualifications</h4><textarea id="qualifications" name="qualifications" rows="4" placeholder="Enter Qualifications"></textarea></div>
+      <div class="form-actions">
+        <input type="submit" value="Generate the JD" onclick="showLoading()">
+        <div id="notes"><b>Note:</b> All fields are mandatory</div>
+      </div>
+    </div>
+  </form>
+  {% if result %}<div class="result-card">{{ result | safe }}</div>{% endif %}
+{% endblock %}

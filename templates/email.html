@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Email Creation - HR Assist{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h2>Email Generation</h2>
+    <p>Generate customized emails for interview invitations, offer releases, rejections and more &mdash; in the tone that matches your company's brand voice.</p>
+  </div>
+  <form action="/email" method="post" id="emailform">
+    <div class="form-grid">
+      <div><h4>Email Type</h4><input type="text" name="emailtype" placeholder="e.g., interview invitation, offer release, rejection"></div>
+      <div><h4>Choose a Tone</h4><select id="tone" name="tone">
+        <option value="professional">Professional</option>
+        <option value="formal">Formal</option>
+        <option value="neutral">Neutral</option>
+        <option value="informal">Informal</option>
+      </select></div>
+      <div class="span-2"><h4>Optional Comments</h4><textarea id="opcom" name="opcom" rows="4" placeholder="e.g., date and time of interview, invitation link etc"></textarea></div>
+      <div class="form-actions">
+        <input type="submit" value="Generate Email Template" onclick="showLoading()">
+        <div id="notes"><b>Note:</b> Email type and Tone are mandatory</div>
+      </div>
+    </div>
+  </form>
+  {% if result %}<div class="result-card">{{ result | safe }}</div>{% endif %}
+{% endblock %}

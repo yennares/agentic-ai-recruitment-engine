@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}Candidate Evaluation Pipeline - HR Assist{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h2>Candidate Evaluation Pipeline</h2>
+    <p>A multi-agent pipeline that screens, scores and ranks a candidate against a job description &mdash; nine specialist agents, each with one job, orchestrated end to end.</p>
+  </div>
+
+  <form action="/pipeline" method="post" enctype="multipart/form-data">
+    <div class="form-grid">
+      <div>
+        <h4>Job Description</h4>
+        <label class="file-drop" for="jd_file">
+          <input type="file" id="jd_file" name="jd_file" accept=".pdf,.docx,.txt" onchange="updateFileName(this,'jd_file_name')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span class="file-drop-text">Click to upload or drag &amp; drop</span>
+          <span class="file-drop-name" id="jd_file_name"></span>
+        </label>
+      </div>
+      <div>
+        <h4>Resume</h4>
+        <label class="file-drop" for="resume_file">
+          <input type="file" id="resume_file" name="resume_file" accept=".pdf,.docx,.txt" onchange="updateFileName(this,'resume_file_name')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span class="file-drop-text">Click to upload or drag &amp; drop</span>
+          <span class="file-drop-name" id="resume_file_name"></span>
+        </label>
+      </div>
+      <div class="form-actions">
+        <input type="submit" value="Run Evaluation Pipeline" onclick="showLoading()">
+        <div id="notes"><b>Note:</b> Uploading both files is mandatory. Runs 7 agents across 3 stages, takes ~15-30 seconds.</div>
+      </div>
+    </div>
+  </form>
+
+  {% if error %}<div class="result-card" id="rednotes">{{ error | safe }}</div>{% endif %}
+
+  {% if ctx %}
+  {% set r = ctx.ranking_result %}
+  {% set badge_class = 'badge-good' if r.shortlist_recommendation == 'Shortlist' else ('badge-warning' if r.shortlist_recommendation == 'Maybe' else 'badge-critical') %}
+  <div class="pipeline-dashboard">
+
+    <div class="score-hero-panel">
+      <div class="score-hero-value">{{ "%.0f"|format(r.final_score) }}<span class="score-hero-max">/100</span></div>
+      <div class="status-badge {{ badge_class }}">
+        {% if r.shortlist_recommendation == 'Shortlist' %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        {% elif r.shortlist_recommendation == 'Maybe' %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path></svg>
+        {% else %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        {% endif %}
+        <span>{{ r.shortlist_recommendation }}</span>
+      </div>
+      <p class="score-rationale">{{ r.rationale }}</p>
+    </div>
+
+    <div class="panel">
+      <h3>Score Breakdown</h3>
+      <div class="meter-row">
+        <div class="meter-label">Skills coverage</div>
+        <div class="meter-track"><div class="meter-fill" style="width: {{ r.score_breakdown.skills_coverage }}%"></div></div>
+        <div class="meter-value">{{ "%.0f"|format(r.score_breakdown.skills_coverage) }}</div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-label">Semantic similarity</div>
+        <div class="meter-track"><div class="meter-fill" style="width: {{ r.score_breakdown.semantic_similarity }}%"></div></div>
+        <div class="meter-value">{{ "%.0f"|format(r.score_breakdown.semantic_similarity) }}</div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-label">Experience progression</div>
+        <div class="meter-track"><div class="meter-fill" style="width: {{ r.score_breakdown.experience_progression }}%"></div></div>
+        <div class="meter-value">{{ "%.0f"|format(r.score_breakdown.experience_progression) }}</div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-label">Culture fit signal</div>
+        <div class="meter-track"><div class="meter-fill" style="width: {{ r.score_breakdown.culture_fit }}%"></div></div>
+        <div class="meter-value">{{ "%.0f"|format(r.score_breakdown.culture_fit) }}</div>
+      </div>
+      <div class="score-math">
+        <span>Weighted average of the four scores above: <b>{{ "%.1f"|format(r.weighted_score_before_penalty) }}</b></span>
+        {% if r.red_flag_penalty %}<span class="score-math-cap">&minus; {{ r.red_flag_penalty }} pts for screener red flags{% if r.screener_failed %} (failed initial screen - see Candidate Screener){% endif %} &rarr; final score {{ "%.1f"|format(r.final_score) }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="panel-grid">
+      <div class="panel">
+        <h3>JD Analyzer <span class="agent-tag">fast model</span></h3>
+        <p class="panel-meta"><b>{{ ctx.jd_analysis.get('role_title', '-') }}</b> &middot; {{ ctx.jd_analysis.get('seniority_level', '-') }}</p>
+        <p class="panel-subhead">Must-have</p>
+        <div class="chip-list">{% for item in ctx.jd_analysis.get('must_have', []) %}<span class="chip chip-required">{{ item }}</span>{% endfor %}</div>
+        <p class="panel-subhead">Nice-to-have</p>
+        <div class="chip-list">{% for item in ctx.jd_analysis.get('nice_to_have', []) %}<span class="chip">{{ item }}</span>{% endfor %}</div>
+      </div>
+
+      <div class="panel">
+        <h3>Skills Extractor <span class="agent-tag">fast model</span></h3>
+        <p class="panel-meta">{{ ctx.skills_extraction.get('total_years_experience', '-') }} years total experience</p>
+        <p class="panel-subhead">Technical skills</p>
+        <div class="chip-list">{% for item in ctx.skills_extraction.get('technical_skills', []) %}<span class="chip">{{ item }}</span>{% else %}<span class="panel-empty">No skills detected - check that the resume text extracted cleanly (scanned/image PDFs won't extract).</span>{% endfor %}</div>
+        <p class="panel-subhead">Certifications</p>
+        <div class="chip-list">{% for item in ctx.skills_extraction.get('certifications', []) %}<span class="chip">{{ item }}</span>{% else %}<span class="panel-empty">None listed</span>{% endfor %}</div>
+      </div>
+
+      <div class="panel">
+        <h3>Candidate Screener <span class="agent-tag">deep model</span></h3>
+        <div class="status-badge {{ 'badge-good' if ctx.screener_result.get('pass_initial_screen') else 'badge-critical' }}">
+          {% if ctx.screener_result.get('pass_initial_screen') %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          {% else %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+          {% endif %}
+          <span>{{ 'Passed initial screen' if ctx.screener_result.get('pass_initial_screen') else 'Flagged at initial screen' }}</span>
+        </div>
+        <p class="panel-subhead">Red flags</p>
+        <ul class="panel-list">{% for flag in ctx.screener_result.get('red_flags', []) %}<li>{{ flag }}</li>{% else %}<li class="panel-empty">None identified</li>{% endfor %}</ul>
+      </div>
+
+      <div class="panel">
+        <h3>Experience Evaluator <span class="agent-tag">deep model</span></h3>
+        <p class="panel-meta">Years match: <b>{{ 'Yes' if ctx.experience_result.get('years_experience_match') else 'No' }}</b> &middot; Progression score: <b>{{ ctx.experience_result.get('progression_score', '-') }}</b></p>
+        <p>{{ ctx.experience_result.get('notes', '') }}</p>
+      </div>
+
+      <div class="panel">
+        <h3>Culture Fit Analyzer <span class="agent-tag">deep model</span></h3>
+        <p class="panel-caveat">Heuristic signal from resume language only &mdash; a soft, low-weight input, not a hiring determinant.</p>
+        <p>{{ ctx.culture_result.get('notes', '') }}</p>
+        <ul class="panel-list">{% for item in ctx.culture_result.get('evidence', []) %}<li>{{ item }}</li>{% endfor %}</ul>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Next steps</h3>
+      <div class="action-row">
+        <form action="/pipeline/{{ eval_id }}/questions" method="post" class="inline-form">
+          <input type="submit" value="Generate Targeted Interview Questions" onclick="showLoading()">
+        </form>
+        <form action="/pipeline/{{ eval_id }}/email" method="post" class="inline-form email-form">
+          <input type="text" name="candidate_name" placeholder="Candidate name (optional)">
+          <select name="emailtype">
+            <option value="move to next round">Move to next round</option>
+            <option value="schedule interview">Schedule interview</option>
+            <option value="request more information">Request more information</option>
+            <option value="polite rejection">Polite rejection</option>
+          </select>
+          <select name="tone">
+            <option value="professional">Professional</option>
+            <option value="formal">Formal</option>
+            <option value="friendly">Friendly</option>
+          </select>
+          <input type="submit" value="Draft Candidate Email" onclick="showLoading()">
+        </form>
+      </div>
+    </div>
+
+    {% if questions_result %}
+    <div class="panel">
+      <h3>Targeted Interview Questions</h3>
+      <ol class="question-list">
+        {% for q in questions_result.get('questions', []) %}
+        <li><span class="question-text">{{ q.get('question') }}</span><span class="question-target">targets: {{ q.get('targets') }}</span></li>
+        {% endfor %}
+      </ol>
+    </div>
+    {% endif %}
+
+    {% if email_result %}
+    <div class="panel">
+      <h3>Drafted Candidate Email</h3>
+      <div class="result-card">{{ email_result | safe }}</div>
+    </div>
+    {% endif %}
+
+  </div>
+  {% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+  function updateFileName(input, targetId) {
+    var el = document.getElementById(targetId);
+    el.textContent = input.files.length ? input.files[0].name : "";
+  }
+</script>
+{% endblock %}

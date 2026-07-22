@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}HR Assist - Home{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h2>Welcome to the HR / Recruitment Assistance Platform</h2>
+    <p>Leveraging generative AI to power everyday HR and recruitment tasks &mdash; generating interview questions, drafting job descriptions, comparing a JD against a resume, and writing candidate emails. All in a few clicks.</p>
+  </div>
+  <div class="card-grid">
+    <div class="feature-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
+      <h3>Job Description Generation</h3>
+      <p>Provide the role, key skills and requirements, and get a complete job description generated on the fly. This saves HR valuable time.</p>
+      <a class="feature-link" href="/jd">Generate a JD &rarr;</a>
+    </div>
+    <div class="feature-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></svg>
+      <h3>Job Description &amp; Resume Comparison</h3>
+      <p>Compare a job description against a candidate's resume to get a match score along with a plain-language summary of the similarities and differences.</p>
+      <a class="feature-link" href="/jdresume">Compare JD &amp; Resume &rarr;</a>
+    </div>
+    <div class="feature-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 2-3 4"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      <h3>Interview Questions Generation</h3>
+      <p>Generate a tailored set of interview questions based on the role, required skills, and years of experience &mdash; ready for the interviewer to use.</p>
+      <a class="feature-link" href="/iqs">Generate Questions &rarr;</a>
+    </div>
+    <div class="feature-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 6-10 7L2 6"></path></svg>
+      <h3>Email Creation</h3>
+      <p>Draft candidate emails for offers, next-round invites, rejections and more, in the tone that matches your company culture.</p>
+      <a class="feature-link" href="/email">Draft an Email &rarr;</a>
+    </div>
+  </div>
+{% endblock %}
